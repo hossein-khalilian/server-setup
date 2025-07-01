@@ -44,4 +44,4 @@ sudo apt install python3-virtualenv -y
 source "$HOME/projects/hse/venv2/bin/activate"
 
 # 🟢 End message
-echo "✅ Setup complete. You're now inside the tmux session."
+echo "✅ Setup complete.
