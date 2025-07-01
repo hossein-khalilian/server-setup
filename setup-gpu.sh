@@ -40,3 +40,7 @@ docker compose -f docker-compose-gpu.yml up -d
 # Create and activate virtual environment
 [ ! -d "$HOME/projects/hse/venv2" ] && virtualenv "$HOME/projects/hse/venv2"
 source "$HOME/projects/hse/venv2/bin/activate"
+
+sudo apt install python3-virtualenv -y
+virtualenv ~/projects/hse/venv2
+source ~/projects/hse/venv2/bin/activate
