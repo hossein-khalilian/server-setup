@@ -1,4 +1,6 @@
 sudo apt update
+sudo apt --fix-broken install -y
+sudo apt autoremove
 sudo apt install tmux curl
 
 curl -o ~/.tmux.conf https://raw.githubusercontent.com/hossein-khalilian/server-setup/main/.tmux.conf
