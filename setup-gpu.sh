@@ -1,3 +1,9 @@
+sudo apt update
+sudo apt install tmux curl
+
+curl -o ~/.tmux.conf https://raw.githubusercontent.com/hossein-khalilian/server-setup/main/.tmux.conf
+tmux source-file ~/.tmux.conf
+
 mkdir -p ~/.config
 cd ~/.config
 git clone https://github.com/hossein-khalilian/nvim-config.git nvim
