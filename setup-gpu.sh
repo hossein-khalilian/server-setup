@@ -1,7 +1,7 @@
 sudo apt update
 sudo apt --fix-broken install -y
 sudo apt autoremove
-sudo apt install tmux curl
+sudo apt install -y tmux curl
 
 tmux new -s setup
 
