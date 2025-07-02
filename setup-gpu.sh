@@ -56,6 +56,10 @@ if [ -z "$DISPLAY" ]; then
 fi
 EOF
 
+grep -qxF 'git config --local user.email "hse.khalilian08@gmail.com"' ~/.bashrc || echo 'git config --local user.email "hse.khalilian08@gmail.com"' >> ~/.bashrc
+grep -qxF 'git config --local user.name "hossein khalilian"' ~/.bashrc || echo 'git config --local user.name "hossein khalilian"' >> ~/.bashrc
+
+
 sudo apt --fix-broken install -y
 sudo apt install ffmpeg -y
 sudo apt autoremove -y
