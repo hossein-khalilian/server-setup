@@ -47,7 +47,17 @@ source ~/.bashrc
 [ ! -d "$HOME/projects/hse/venv2" ] && virtualenv "$HOME/projects/hse/venv2"
 echo 'source ~/projects/hse/venv2/bin/activate' >> ~/.bashrc
 
+grep -qxF 'if [ -z "$DISPLAY" ]; then' ~/.bashrc || cat << 'EOF' >> ~/.bashrc
+
+# Start Xvfb if no display is available
+if [ -z "$DISPLAY" ]; then
+  Xvfb :0 -screen 0 1024x768x24 &
+  export DISPLAY=:0
+fi
+EOF
+
 sudo apt --fix-broken install -y
+sudo apt install ffmpeg -y
 sudo apt autoremove -y
 
 # 🟢 End message
