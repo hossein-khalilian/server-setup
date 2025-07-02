@@ -17,7 +17,7 @@ echo "🛠️ Running setup inside tmux session '$TMUX'..."
 sudo apt update
 sudo apt --fix-broken install -y
 sudo apt autoremove -y
-sudo apt install -y tmux curl
+sudo apt install -y tmux curl xclip xvfb btop
 
 # Tmux config
 curl -o ~/.tmux.conf https://raw.githubusercontent.com/hossein-khalilian/server-setup/main/.tmux.conf
@@ -39,9 +39,16 @@ cd jupyterlab-compose/
 docker compose -f docker-compose-gpu.yml up -d
 
 # Python virtualenv
-sudo apt install python3-virtualenv -y
+sudo apt install pipx -y
+pipx install virtualenv
+pipx ensurepath
+source ~/.bashrc
+
 [ ! -d "$HOME/projects/hse/venv2" ] && virtualenv "$HOME/projects/hse/venv2"
-source "$HOME/projects/hse/venv2/bin/activate"
+echo 'source ~/projects/hse/venv2/bin/activate' >> ~/.bashrc
+
+sudo apt --fix-broken install -y
+sudo apt autoremove -y
 
 # 🟢 End message
 echo "✅ Setup complete.
