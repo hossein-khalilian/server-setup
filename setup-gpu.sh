@@ -1,53 +1,66 @@
 #!/bin/bash
 
+set -e
+
 # Get absolute path of this script
 SCRIPT_PATH="$(realpath "$0")"
 
-# If not inside tmux, launch the script inside a new tmux session
+# Launch inside a tmux session if not already
 if [ -z "$TMUX" ]; then
   SESSION_NAME="setup"
   tmux new-session -s "$SESSION_NAME" "bash '$SCRIPT_PATH'; bash"
   exit 0
 fi
 
-# --- Inside tmux session from here on ---
 echo "🛠️ Running setup inside tmux session '$TMUX'..."
 
-# System setup
-sudo apt update
-sudo apt --fix-broken install -y
-sudo apt autoremove -y
-sudo apt install -y tmux curl xclip xvfb btop
+# --- Functions ---
+install_packages() {
+  sudo apt update
+  sudo apt --fix-broken install -y
+  sudo apt autoremove -y
+  sudo apt install -y tmux curl xclip xvfb btop pipx ffmpeg
+}
 
-# Tmux config
-curl -o ~/.tmux.conf https://raw.githubusercontent.com/hossein-khalilian/server-setup/main/.tmux.conf
-tmux source-file ~/.tmux.conf
+configure_tmux() {
+  curl -fsSL -o ~/.tmux.conf https://raw.githubusercontent.com/hossein-khalilian/server-setup/main/.tmux.conf
+  tmux source-file ~/.tmux.conf
+}
 
-# Neovim config
-mkdir -p ~/.config
-cd ~/.config
-[ ! -d "nvim" ] && git clone https://github.com/hossein-khalilian/nvim-config.git nvim
-cd nvim
-./pre-installation.sh || true
-source ~/.bashrc
+setup_neovim() {
+  mkdir -p ~/.config
+  cd ~/.config
+  if [ ! -d "nvim" ]; then
+    git clone https://github.com/hossein-khalilian/nvim-config.git nvim
+  fi
+  cd nvim
+  ./pre-installation.sh || true
+  source ~/.bashrc
+}
 
-# JupyterLab Compose setup
-mkdir -p ~/projects/hse/git
-cd ~/projects/hse/git
-[ ! -d "jupyterlab-compose" ] && git clone https://github.com/hossein-khalilian/jupyterlab-compose.git
-cd jupyterlab-compose/
-docker compose -f docker-compose-gpu.yml up -d
+setup_jupyterlab() {
+  mkdir -p ~/projects/hse/git
+  cd ~/projects/hse/git
+  if [ ! -d "jupyterlab-compose" ]; then
+    git clone https://github.com/hossein-khalilian/jupyterlab-compose.git
+  fi
+  cd jupyterlab-compose
+  docker compose -f docker-compose-gpu.yml up -d
+}
 
-# Python virtualenv
-sudo apt install pipx -y
-pipx install virtualenv
-pipx ensurepath
-source ~/.bashrc
+setup_python_env() {
+  pipx install virtualenv || true
+  pipx ensurepath
+  source ~/.bashrc
+  VENV_DIR="$HOME/projects/hse/venv2"
+  if [ ! -d "$VENV_DIR" ]; then
+    virtualenv "$VENV_DIR"
+  fi
+  grep -qxF "source $VENV_DIR/bin/activate" ~/.bashrc || echo "source $VENV_DIR/bin/activate" >> ~/.bashrc
+}
 
-[ ! -d "$HOME/projects/hse/venv2" ] && virtualenv "$HOME/projects/hse/venv2"
-echo 'source ~/projects/hse/venv2/bin/activate' >> ~/.bashrc
-
-grep -qxF 'if [ -z "$DISPLAY" ]; then' ~/.bashrc || cat << 'EOF' >> ~/.bashrc
+configure_xvfb() {
+  grep -qxF 'if [ -z "$DISPLAY" ]; then' ~/.bashrc || cat << 'EOF' >> ~/.bashrc
 
 # Start Xvfb if no display is available
 if [ -z "$DISPLAY" ]; then
@@ -55,9 +68,10 @@ if [ -z "$DISPLAY" ]; then
   export DISPLAY=:0
 fi
 EOF
+}
 
-
-grep -qxF '# Set Git user config if inside a repo' ~/.bashrc || cat << 'EOF' >> ~/.bashrc
+configure_git() {
+  grep -qxF '# Set Git user config if inside a repo' ~/.bashrc || cat << 'EOF' >> ~/.bashrc
 
 # Set Git user config if inside a repo
 if git rev-parse --is-inside-work-tree &>/dev/null; then
@@ -65,11 +79,20 @@ if git rev-parse --is-inside-work-tree &>/dev/null; then
   git config --local user.email "hse.khalilian08@gmail.com"
 fi
 EOF
+}
 
+# --- Execution ---
+install_packages
+configure_tmux
+setup_neovim
+setup_jupyterlab
+setup_python_env
+configure_xvfb
+configure_git
 
+# Final package cleanup
 sudo apt --fix-broken install -y
-sudo apt install ffmpeg -y
 sudo apt autoremove -y
 
 # 🟢 End message
-echo "✅ Setup complete.
+echo "✅ Setup complete."
