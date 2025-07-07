@@ -56,8 +56,15 @@ if [ -z "$DISPLAY" ]; then
 fi
 EOF
 
-grep -qxF 'git config --local user.email "hse.khalilian08@gmail.com"' ~/.bashrc || echo 'git config --local user.email "hse.khalilian08@gmail.com"' >> ~/.bashrc
-grep -qxF 'git config --local user.name "hossein khalilian"' ~/.bashrc || echo 'git config --local user.name "hossein khalilian"' >> ~/.bashrc
+
+grep -qxF '# Set Git user config if inside a repo' ~/.bashrc || cat << 'EOF' >> ~/.bashrc
+
+# Set Git user config if inside a repo
+if git rev-parse --is-inside-work-tree &>/dev/null; then
+  git config --local user.name "hossein khalilian"
+  git config --local user.email "hse.khalilian08@gmail.com"
+fi
+EOF
 
 
 sudo apt --fix-broken install -y
