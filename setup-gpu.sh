@@ -53,10 +53,10 @@ setup_python_env() {
   pipx ensurepath
   source ~/.bashrc
   VENV_DIR="$HOME/projects/hse/venv2"
+  grep -qxF "source $VENV_DIR/bin/activate" ~/.bashrc || echo "source $VENV_DIR/bin/activate" >> ~/.bashrc
   if [ ! -d "$VENV_DIR" ]; then
     virtualenv "$VENV_DIR"
   fi
-  grep -qxF "source $VENV_DIR/bin/activate" ~/.bashrc || echo "source $VENV_DIR/bin/activate" >> ~/.bashrc
 }
 
 configure_xvfb() {
@@ -84,11 +84,11 @@ EOF
 # --- Execution ---
 install_packages
 configure_tmux
+configure_git
 setup_neovim
 setup_jupyterlab
 setup_python_env
 configure_xvfb
-configure_git
 
 # Final package cleanup
 sudo apt --fix-broken install -y
