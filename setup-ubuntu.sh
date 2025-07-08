@@ -1,0 +1,121 @@
+#!/bin/bash
+
+set -e
+
+# Get absolute path of this script
+SCRIPT_PATH="$(realpath "$0")"
+
+# Launch inside a tmux session if not already
+if [ -z "$TMUX" ]; then
+  SESSION_NAME="setup"
+  tmux new-session -s "$SESSION_NAME" "bash '$SCRIPT_PATH'; bash"
+  exit 0
+fi
+
+echo "🛠️ Running setup inside tmux session '$TMUX'..."
+
+# --- Functions ---
+install_packages() {
+  sudo apt update
+  sudo apt --fix-broken install -y
+  sudo apt autoremove -y
+  sudo apt install -y tmux curl xclip btop pipx
+}
+
+install_docker() {
+  for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
+  sudo apt-get update
+  sudo apt-get install ca-certificates curl
+  sudo install -m 0755 -d /etc/apt/keyrings
+  sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+  echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+    $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  sudo apt-get update
+
+  sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+  # Post installation
+  sudo groupadd docker
+  sudo usermod -aG docker $USER
+  newgrp docker
+}
+
+configure_tmux() {
+  curl -fsSL -o ~/.tmux.conf https://raw.githubusercontent.com/hossein-khalilian/server-setup/main/.tmux.conf
+  tmux source-file ~/.tmux.conf
+}
+
+setup_neovim() {
+  mkdir -p ~/.config
+  cd ~/.config
+  if [ ! -d "nvim" ]; then
+    git clone https://github.com/hossein-khalilian/nvim-config.git nvim
+  fi
+  cd nvim
+  ./pre-installation.sh || true
+  source ~/.bashrc
+}
+
+setup_jupyterlab() {
+  mkdir -p ~/projects/hse/git
+  cd ~/projects/hse/git
+  if [ ! -d "jupyterlab-compose" ]; then
+    git clone https://github.com/hossein-khalilian/jupyterlab-compose.git
+  fi
+  cd jupyterlab-compose
+  docker compose -f docker-compose.yml up -d
+}
+
+setup_python_env() {
+  pipx install virtualenv || true
+  pipx ensurepath
+  source ~/.bashrc
+  VENV_DIR="$HOME/projects/hse/venv2"
+  grep -qxF "source $VENV_DIR/bin/activate" ~/.bashrc || echo "source $VENV_DIR/bin/activate" >> ~/.bashrc
+  if [ ! -d "$VENV_DIR" ]; then
+    $HOME/.local/bin/virtualenv "$VENV_DIR"
+  fi
+}
+
+configure_xvfb() {
+  grep -qxF 'if [ -z "$DISPLAY" ]; then' ~/.bashrc || cat << 'EOF' >> ~/.bashrc
+
+# Start Xvfb if no display is available
+if [ -z "$DISPLAY" ]; then
+  Xvfb :0 -screen 0 1024x768x24 &
+  export DISPLAY=:0
+fi
+EOF
+}
+
+configure_git() {
+  grep -qxF '# Set Git user config if inside a repo' ~/.bashrc || cat << 'EOF' >> ~/.bashrc
+
+# Set Git user config if inside a repo
+if git rev-parse --is-inside-work-tree &>/dev/null; then
+  git config --local user.name "hossein khalilian"
+  git config --local user.email "hse.khalilian08@gmail.com"
+fi
+EOF
+}
+
+# --- Execution ---
+install_packages
+configure_tmux
+configure_git
+setup_neovim
+install_docker
+configure_xvfb
+# setup_jupyterlab
+# setup_python_env
+
+# Final package cleanup
+sudo apt --fix-broken install -y
+sudo apt autoremove -y
+
+# 🟢 End message
+echo "✅ Setup complete."
