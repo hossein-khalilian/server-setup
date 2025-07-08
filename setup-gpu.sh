@@ -55,7 +55,7 @@ setup_python_env() {
   VENV_DIR="$HOME/projects/hse/venv2"
   grep -qxF "source $VENV_DIR/bin/activate" ~/.bashrc || echo "source $VENV_DIR/bin/activate" >> ~/.bashrc
   if [ ! -d "$VENV_DIR" ]; then
-    virtualenv "$VENV_DIR"
+    $HOME/.local/bin/virtualenv "$VENV_DIR"
   fi
 }
 
