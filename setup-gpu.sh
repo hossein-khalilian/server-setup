@@ -19,7 +19,7 @@ install_packages() {
   sudo apt update
   sudo apt --fix-broken install -y
   sudo apt autoremove -y
-  sudo apt install -y tmux curl xclip xvfb btop pipx ffmpeg nvtop libsndfile1
+  sudo apt install -y tmux curl xclip xvfb btop pipx ffmpeg nvtop libsndfile1 sox
 }
 
 configure_tmux() {
