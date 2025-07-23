@@ -13,6 +13,9 @@ scp "$LOCAL_SCRIPT" "$HOST:$REMOTE_SCRIPT"
 # Run it remotely inside tmux and keep tmux open after execution
 ssh "$HOST" "chmod +x $REMOTE_SCRIPT && tmux new-session -d -s setup '$REMOTE_SCRIPT; echo; echo \"✅ Script finished. Press any key to exit.\"; read'"
 
-# Let the user know
-echo "🚀 Remote setup script launched in tmux session 'setup' on $HOST."
-echo "To attach: ssh $HOST -t 'tmux attach -t setup'"
+# Automatically attach to the tmux session
+ssh -t "$HOST" "tmux attach -t setup"
+
+# # Let the user know
+# echo "🚀 Remote setup script launched in tmux session 'setup' on $HOST."
+# echo "To attach: ssh $HOST -t 'tmux attach -t setup'"

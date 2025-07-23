@@ -4,6 +4,7 @@ set -e
 
 # Get absolute path of this script
 SCRIPT_PATH="$(realpath "$0")"
+export DEBIAN_FRONTEND=noninteractive
 
 # Launch inside a tmux session if not already
 if [ -z "$TMUX" ]; then
@@ -16,6 +17,8 @@ echo "🛠️ Running setup inside tmux session '$TMUX'..."
 
 # --- Functions ---
 install_packages() {
+  export NEEDRESTART_MODE=a
+  echo 'NEEDRESTART_MODE=a' | sudo tee /etc/environment.d/90-needrestart.conf
   sudo apt update
   sudo apt --fix-broken install -y
   sudo apt autoremove -y
@@ -86,9 +89,9 @@ install_packages
 configure_tmux
 configure_git
 setup_neovim
-setup_jupyterlab
 setup_python_env
 configure_xvfb
+setup_jupyterlab
 
 # Final package cleanup
 sudo apt --fix-broken install -y
