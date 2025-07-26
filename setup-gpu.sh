@@ -4,7 +4,6 @@ set -e
 
 # Get absolute path of this script
 SCRIPT_PATH="$(realpath "$0")"
-export DEBIAN_FRONTEND=noninteractive
 
 # Launch inside a tmux session if not already
 if [ -z "$TMUX" ]; then
@@ -17,8 +16,14 @@ echo "🛠️ Running setup inside tmux session '$TMUX'..."
 
 # --- Functions ---
 install_packages() {
+  echo "========== INSTALLING PACKAGES =========="
   export NEEDRESTART_MODE=a
-  echo 'NEEDRESTART_MODE=a' | sudo tee /etc/environment.d/90-needrestart.conf
+  export DEBIAN_FRONTEND=noninteractive
+
+    sudo tee /etc/needrestart/conf.d/99-no-prompt.conf > /dev/null <<EOF
+\$nrconf{restart} = 'a';
+EOF
+
   sudo apt update
   sudo apt --fix-broken install -y
   sudo apt autoremove -y
@@ -26,11 +31,13 @@ install_packages() {
 }
 
 configure_tmux() {
+  echo "========== CONFIGURING TMUX =========="
   curl -fsSL -o ~/.tmux.conf https://raw.githubusercontent.com/hossein-khalilian/server-setup/main/.tmux.conf
   tmux source-file ~/.tmux.conf
 }
 
 setup_neovim() {
+  echo "========== SETTING UP NEOVIM =========="
   mkdir -p ~/.config
   cd ~/.config
   if [ ! -d "nvim" ]; then
@@ -42,6 +49,7 @@ setup_neovim() {
 }
 
 setup_jupyterlab() {
+  echo "========== SETTING UP JUPYTERLAB =========="
   mkdir -p ~/projects/hse/git
   cd ~/projects/hse/git
   if [ ! -d "jupyterlab-compose" ]; then
@@ -52,6 +60,7 @@ setup_jupyterlab() {
 }
 
 setup_python_env() {
+  echo "========== SETTING UP PYTHON ENV =========="
   pipx install virtualenv || true
   pipx ensurepath
   source ~/.bashrc
@@ -63,6 +72,7 @@ setup_python_env() {
 }
 
 configure_xvfb() {
+  echo "========== CONFIGURING XVFB =========="
   grep -qxF 'if [ -z "$DISPLAY" ]; then' ~/.bashrc || cat << 'EOF' >> ~/.bashrc
 
 # Start Xvfb if no display is available
@@ -74,6 +84,7 @@ EOF
 }
 
 configure_git() {
+  echo "========== CONFIGURING GIT =========="
   grep -qxF '# Set Git user config if inside a repo' ~/.bashrc || cat << 'EOF' >> ~/.bashrc
 
 # Set Git user config if inside a repo
@@ -94,8 +105,8 @@ configure_xvfb
 setup_jupyterlab
 
 # Final package cleanup
+echo "========== FINAL CLEANUP =========="
 sudo apt --fix-broken install -y
 sudo apt autoremove -y
 
-# 🟢 End message
-echo "✅ Setup complete."
+echo "========== ✅ SETUP COMPLETE ✅ =========="
