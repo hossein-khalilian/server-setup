@@ -79,7 +79,7 @@ setup_python_env() {
             echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
         fi
         export PATH="$HOME/.local/bin:$PATH"
-        uv pin 3.12
+        uv python pin 3.12
     fi
     VENV_DIR="$HOME/projects/hse/venv2"
     if [ ! -d "$VENV_DIR" ]; then
