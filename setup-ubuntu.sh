@@ -70,16 +70,50 @@ setup_jupyterlab() {
   docker compose -f docker-compose.yml up -d
 }
 
+# setup_python_env() {
+#   pipx install virtualenv || true
+#   pipx ensurepath
+#   source ~/.bashrc
+#   VENV_DIR="$HOME/projects/hse/venv2"
+#   grep -qxF "source $VENV_DIR/bin/activate" ~/.bashrc || echo "source $VENV_DIR/bin/activate" >> ~/.bashrc
+#   if [ ! -d "$VENV_DIR" ]; then
+#     $HOME/.local/bin/virtualenv "$VENV_DIR"
+#   fi
+# }
+#
 setup_python_env() {
-  pipx install virtualenv || true
-  pipx ensurepath
-  source ~/.bashrc
-  VENV_DIR="$HOME/projects/hse/venv2"
-  grep -qxF "source $VENV_DIR/bin/activate" ~/.bashrc || echo "source $VENV_DIR/bin/activate" >> ~/.bashrc
-  if [ ! -d "$VENV_DIR" ]; then
-    $HOME/.local/bin/virtualenv "$VENV_DIR"
-  fi
+    echo "========== SETTING UP PYTHON ENV WITH UV =========="
+    # Install uv if not already installed
+    if ! command -v uv &>/dev/null; then
+        echo "Installing uv..."
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+
+        # Ensure ~/.local/bin is in PATH
+        if ! grep -qxF 'export PATH="$HOME/.local/bin:$PATH"' ~/.bashrc; then
+            echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+        fi
+
+        # Update PATH for current shell
+        export PATH="$HOME/.local/bin:$PATH"
+    fi
+    # Define virtual environment directory
+    VENV_DIR="$HOME/projects/hse/venv2"
+    # Create the virtual environment using uv if it doesn't exist
+    if [ ! -d "$VENV_DIR" ]; then
+        echo "Creating virtual environment at $VENV_DIR using uv..."
+        uv venv "$VENV_DIR"
+    fi
+    # Add activation to .bashrc if not already present
+    if ! grep -qxF "source $VENV_DIR/bin/activate" ~/.bashrc; then
+        echo "source $VENV_DIR/bin/activate" >> ~/.bashrc
+    fi
+
+    # Activate environment in current shell
+    source "$VENV_DIR/bin/activate"
+    echo "Python environment setup complete with uv."
 }
+
+
 
 configure_xvfb() {
   grep -qxF 'if [ -z "$DISPLAY" ]; then' ~/.bashrc || cat << 'EOF' >> ~/.bashrc
@@ -104,14 +138,14 @@ EOF
 }
 
 # --- Execution ---
-install_packages
-configure_tmux
-configure_git
-setup_neovim
-install_docker
-configure_xvfb
+# install_packages
+# configure_tmux
+# configure_git
+# setup_neovim
+# install_docker
+# configure_xvfb
 # setup_jupyterlab
-# setup_python_env
+setup_python_env
 
 # Final package cleanup
 sudo apt --fix-broken install -y
