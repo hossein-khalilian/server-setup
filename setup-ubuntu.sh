@@ -36,14 +36,13 @@ install_docker() {
     sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
   sudo apt-get update
 
-  sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
 
   # Post installation
     if ! getent group docker > /dev/null 2>&1; then
     sudo groupadd docker
   fi
   sudo usermod -aG docker $USER
-  newgrp docker
 }
 
 configure_tmux() {
@@ -120,13 +119,13 @@ EOF
 }
 
 # --- Execution ---
-# install_packages
-# configure_tmux
-# configure_git
-# setup_neovim
-# install_docker
-# configure_xvfb
-# setup_jupyterlab
+install_packages
+configure_tmux
+configure_git
+setup_neovim
+install_docker
+configure_xvfb
+setup_jupyterlab
 setup_python_env
 
 # Final package cleanup
