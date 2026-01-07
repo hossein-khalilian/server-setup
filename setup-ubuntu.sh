@@ -19,7 +19,8 @@ install_packages() {
   sudo apt update
   sudo apt --fix-broken install -y
   sudo apt autoremove -y
-  sudo apt install -y tmux curl xclip btop pipx
+  sudo apt install -y tmux git curl xclip btop pipx
+  mkdir -p ~/projects/hse/git
 }
 
 install_docker() {
@@ -125,7 +126,7 @@ configure_git
 setup_neovim
 install_docker
 configure_xvfb
-setup_jupyterlab
+# setup_jupyterlab
 setup_python_env
 
 # Final package cleanup
