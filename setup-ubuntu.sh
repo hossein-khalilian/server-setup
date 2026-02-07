@@ -73,28 +73,45 @@ setup_jupyterlab() {
 }
 
 setup_python_env() {
-    echo "========== SETTING UP PYTHON ENV WITH UV =========="
+    echo "========== SETTING UP PYTHON ENV =========="
+
+    # Install uv if missing
     if ! command -v uv &>/dev/null; then
         echo "Installing uv..."
         curl -LsSf https://astral.sh/uv/install.sh | sh
+        # Add uv to PATH if not already there
         if ! grep -qxF 'export PATH="$HOME/.local/bin:$PATH"' ~/.bashrc; then
             echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
         fi
         export PATH="$HOME/.local/bin:$PATH"
-        uv python pin 3.12
     fi
+
     VENV_DIR="$HOME/projects/hse/venv2"
-    if [ ! -d "$VENV_DIR" ]; then
-        echo "Creating virtual environment at $VENV_DIR using uv..."
-        uv venv "$VENV_DIR"
+
+    # Ensure python3-venv is installed
+    if ! dpkg -s python3-venv &>/dev/null; then
+        echo "Installing python3-venv and python3-pip..."
+        sudo apt update && sudo apt install -y python3-venv python3-pip
     fi
+
+    # Create virtual environment using python -m venv
+    if [ ! -d "$VENV_DIR" ]; then
+        echo "Creating virtual environment at $VENV_DIR..."
+        python3 -m venv "$VENV_DIR"
+    fi
+
+    # Activate venv and ensure pip is available
+    source "$VENV_DIR/bin/activate"
+    python -m ensurepip --upgrade
+    pip install --upgrade pip
+
+    # Add venv activation to .bashrc if not already there
     if ! grep -qxF "source $VENV_DIR/bin/activate" ~/.bashrc; then
         echo "source $VENV_DIR/bin/activate" >> ~/.bashrc
     fi
-    source "$VENV_DIR/bin/activate"
-    echo "Python environment setup complete with uv."
-}
 
+    echo "Python environment setup complete."
+}
 
 
 configure_xvfb() {
