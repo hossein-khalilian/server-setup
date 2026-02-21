@@ -19,7 +19,7 @@ install_packages() {
   sudo apt update
   sudo apt --fix-broken install -y
   sudo apt autoremove -y
-  sudo apt install -y tmux git curl xclip btop pipx
+  sudo apt install -y tmux git curl xclip btop pipx xvfb
   mkdir -p ~/projects/hse/git
 }
 
